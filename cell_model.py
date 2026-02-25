@@ -3,8 +3,16 @@ def clamp(x: float, minval: float = 0.0, maxval: float = 1.0) -> float:
     return max(minval, min(maxval, x))
 
 def build_ocm():
-
     m = Model()
+    # --- Sub-compartments and explicit metabolites ---
+    # Nucleus substructure
+    m.add_node("Nucleolus", baseline=0.7, decay=0.08)
+    m.add_node("Nuclear_envelope", baseline=0.9, decay=0.05)
+    # Mitochondria substructure
+    m.add_node("Cristae", baseline=0.8, decay=0.07)
+    # Explicit metabolites
+    m.add_node("ATP", baseline=0.5, decay=0.15)
+    m.add_node("ROS_metabolite", baseline=0.4, decay=0.12)
     # Add all input nodes
     m.add_node("IN_fasting", value=0.0, baseline=0.0, decay=0.0)
     m.add_node("IN_endurance_exercise", value=0.0, baseline=0.0, decay=0.0)

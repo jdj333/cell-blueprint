@@ -63,14 +63,20 @@ def render_cell_blueprint(state: Dict[str, float], outpath: str = "cell_blueprin
     cell = Circle((0, 0), radius=cell_r, fill=False, linewidth=2.5, edgecolor=PALETTE["boundary"], zorder=2)
     ax.add_patch(cell)
 
-    # --- Nucleus (double membrane, nucleolus, shadow)
+    # --- Nucleus (double membrane, nucleolus, shadow, envelope)
     nuc_r = ORGANELLE_SIZES["nucleus_diameter_um"] / 2.0
+    # Shadow
     ax.add_patch(Circle((0.5, 0.5), nuc_r, color="#bbbbdd", alpha=0.18, zorder=3))
+    # Main nucleus
     ax.add_patch(Circle((0, 0), nuc_r, fill=True, color=PALETTE["nucleus"], alpha=0.25, zorder=4))
     ax.add_patch(Circle((0, 0), nuc_r, fill=False, linewidth=2, edgecolor=PALETTE["nucleus"], zorder=5))
-    ax.add_patch(Circle((0, 0), nuc_r-0.18, fill=False, linewidth=1, edgecolor="#3a6cc7", alpha=0.7, zorder=5))
-    ax.add_patch(Ellipse((0.7, 0.5), width=1.1, height=0.7, angle=18, edgecolor="#2a2a5a", facecolor="#bfc6e0", alpha=0.7, linewidth=0.7, zorder=6))
+    # Nuclear envelope (thicker outline)
+    ax.add_patch(Circle((0, 0), nuc_r+0.12, fill=False, linewidth=2.5, edgecolor="#6a8ad7", alpha=0.7, zorder=5))
     ax.text(nuc_r + 0.2, 0.1, "Nucleus", fontsize=10, color=PALETTE["nucleus"], zorder=10)
+    ax.text(nuc_r + 0.2, -0.5, "Nuclear envelope", fontsize=8, color="#6a8ad7", zorder=10)
+    # Nucleolus (ellipse inside nucleus)
+    ax.add_patch(Ellipse((0.3, -0.2), width=0.7, height=0.45, angle=12, edgecolor="#2a2a5a", facecolor="#e6e6fa", alpha=0.85, linewidth=0.7, zorder=6))
+    ax.text(0.7, -0.4, "Nucleolus", fontsize=8, color="#2a2a5a", zorder=10)
 
     # --- Golgi (stacked cisternae)
     golgi_x = nuc_r + 1.2
@@ -111,10 +117,11 @@ def render_cell_blueprint(state: Dict[str, float], outpath: str = "cell_blueprin
                 ax.scatter([rx], [ry], s=3, c=PALETTE["ribosome"], alpha=0.7, linewidths=0, zorder=5)
     ax.text(-cell_r + 0.6, cell_r - 1.1, "ER", fontsize=8, color=PALETTE["er"], zorder=10)
 
-    # --- Mitochondria (rods, ovals, branched, transparency)
+    # --- Mitochondria (rods, ovals, branched, cristae, transparency)
     mito_count = ORGANELLE_COUNTS["mitochondria"]
     L = ORGANELLE_SIZES["mito_length_um"]
     mito_types = ["rod", "oval", "branched"]
+    cristae_drawn = False
     for i in range(mito_count):
         if i < mito_count // 3:
             r = np.random.uniform(nuc_r + 0.5, nuc_r + 2.0)
@@ -128,6 +135,15 @@ def render_cell_blueprint(state: Dict[str, float], outpath: str = "cell_blueprin
             dx = (L / 2) * np.cos(angle)
             dy = (L / 2) * np.sin(angle)
             ax.plot([x - dx, x + dx], [y - dy, y + dy], color=PALETTE["mitochondria"], linewidth=1.1, alpha=0.45, zorder=7)
+            # Draw cristae as arcs inside a few rods
+            if not cristae_drawn and np.random.rand() < 0.02:
+                for j in range(3):
+                    frac = np.random.uniform(0.2, 0.8)
+                    cx = x - dx + frac * 2 * dx
+                    cy = y - dy + frac * 2 * dy
+                    ax.add_patch(Arc((cx, cy), 0.3, 0.12, angle=np.degrees(angle), theta1=0, theta2=180, color="#b22222", lw=1, alpha=0.7, zorder=8))
+                ax.text(x + 0.2, y, "Cristae", fontsize=7, color="#b22222", zorder=10)
+                cristae_drawn = True
         elif mtype == "oval":
             width = L * np.random.uniform(0.5, 1.0)
             height = ORGANELLE_SIZES["mito_width_um"] * np.random.uniform(0.7, 1.2)

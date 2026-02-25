@@ -75,14 +75,28 @@ class Model:
         for name, v in new_values.items():
             self.nodes[name].value = v
 
-# Organelle size and property data (for view)
+# Organelle size and count data (literature-based, typical mammalian cell)
+# Sources: Alberts et al., BioNumbers, NCBI Bookshelf
 ORGANELLE_SIZES = {
-    "cell_diameter_um": 20.0,
-    "nucleus_diameter_um": 5.5,
-    "mito_length_um": 1.6,
-    "mito_width_um": 0.6,
-    "lysosome_diameter_um": 0.5,
-    "peroxisome_diameter_um": 0.45,
-    "golgi_region_width_um": 3.0,
-    "golgi_region_height_um": 2.0,
+    "cell_diameter_um": 20.0,           # Typical animal cell diameter
+    "nucleus_diameter_um": 7.0,         # 5–10 µm
+    "mito_length_um": 1.5,              # 1–2 µm
+    "mito_width_um": 0.7,               # 0.5–1 µm
+    "lysosome_diameter_um": 0.5,        # 0.1–1.2 µm
+    "peroxisome_diameter_um": 0.3,      # 0.1–1 µm
+    "golgi_region_width_um": 3.5,       # 2–5 µm
+    "golgi_region_height_um": 2.0,      # region
+    "er_tubule_diameter_um": 0.08,      # 60–100 nm
+    "ribosome_diameter_um": 0.025,      # 20–30 nm
+    "vesicle_diameter_um": 0.1,         # 50–200 nm
+}
+
+ORGANELLE_COUNTS = {
+    "nucleus": 1,
+    "mitochondria": 500,        # 100–2000
+    "lysosomes": 200,           # 50–1000
+    "peroxisomes": 200,         # 100–400
+    "golgi": 1,
+    "ribosomes": 2000000,       # 1–10 million
+    "vesicles": 500,            # variable
 }

@@ -18,6 +18,7 @@ def run_simulation(model: Model,
             "Mito_capacity", "Lysosome_capacity", "Autophagy_flux",
             "Proteasome_capacity", "ER_capacity", "Ribosome_capacity", "Peroxisome_capacity",
             "Nucleolus", "Nuclear_envelope", "Cristae", "ATP", "ROS_metabolite",
+            "Actin_filaments", "Microtubules", "Intermediate_filaments",
             "OUT_ATP_capacity", "OUT_proteostasis", "OUT_lipofuscin_pressure", "OUT_inflammatory_pressure"
         ]
     history: Dict[str, List[float]] = {k: [] for k in track}

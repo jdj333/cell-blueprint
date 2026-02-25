@@ -36,6 +36,10 @@ def render_cell_blueprint(state: Dict[str, float], outpath: str = "cell_blueprin
     from matplotlib.patches import Ellipse, Arc
     from cell_model import ORGANELLE_SIZES, ORGANELLE_COUNTS
 
+    # --- Cytoskeleton ---
+    # Actin filaments: curved lines near membrane
+    # (nuc_r and cell_r are defined below, so this block will move after setup)
+
     # --- Setup
     cell_r = ORGANELLE_SIZES["cell_diameter_um"] / 2.0
     fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
@@ -202,6 +206,9 @@ def render_cell_blueprint(state: Dict[str, float], outpath: str = "cell_blueprin
         (PALETTE["golgi"], "Golgi"),
         (PALETTE["er"], "ER"),
         (PALETTE["ribosome"], "Ribosome"),
+        ("#e377c2", "Actin filaments"),
+        ("#17becf", "Microtubules"),
+        ("#bcbd22", "Intermediate filaments"),
     ]
     for i, (color, label) in enumerate(legend_lines):
         ax.plot([legend_x, legend_x + 0.7], [legend_y - i * 0.5, legend_y - i * 0.5], color=color, lw=5, alpha=0.8, zorder=20)

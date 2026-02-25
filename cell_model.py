@@ -4,6 +4,13 @@ def clamp(x: float, minval: float = 0.0, maxval: float = 1.0) -> float:
 
 def build_ocm():
     m = Model()
+
+
+    # --- Cytoskeleton nodes ---
+    m.add_node("Actin_filaments", baseline=0.7, decay=0.08)
+    m.add_node("Microtubules", baseline=0.7, decay=0.08)
+    m.add_node("Intermediate_filaments", baseline=0.7, decay=0.08)
+
     # --- Sub-compartments and explicit metabolites ---
     # Nucleus substructure
     m.add_node("Nucleolus", baseline=0.7, decay=0.08)
@@ -60,52 +67,48 @@ def build_ocm():
     def out_lipofuscin_pressure(model: Model, _: str) -> float:
         ros = model.get("ROS")
         iron = model.get("IN_iron_load")
-        infl = model.get("NFkB")
-        lyso = model.get("Lysosome_capacity")
-        auto = model.get("Autophagy_flux")
-        clearance = 0.55 * lyso + 0.45 * auto
-        pressure = 0.50 * ros + 0.25 * iron + 0.25 * infl
-        return clamp(pressure * (1.0 - 0.8 * clearance))
 
-    def out_inflammatory_pressure(model: Model, _: str) -> float:
-        return clamp(0.70 * model.get("NFkB") + 0.30 * model.get("ROS"))
-
-    m.add_node("OUT_ATP_capacity", baseline=0.5, decay=0.20, update_rule=out_ATP)
-    m.add_node("OUT_proteostasis", baseline=0.5, decay=0.20, update_rule=out_proteostasis)
-    m.add_node("OUT_lipofuscin_pressure", baseline=0.4, decay=0.20, update_rule=out_lipofuscin_pressure)
-    m.add_node("OUT_inflammatory_pressure", baseline=0.3, decay=0.20, update_rule=out_inflammatory_pressure)
-
-    # Wiring: Inputs -> Regulators
-    m.add_edge("IN_fasting", "AMPK", +1.4)
-    m.add_edge("IN_endurance_exercise", "AMPK", +1.2)
-    m.add_edge("IN_caloric_excess", "mTORC1", +1.3)
-    m.add_edge("IN_protein_aa", "mTORC1", +1.1)
-    m.add_edge("IN_resistance_training", "mTORC1", +0.9)
-    m.add_edge("IN_NAD_availability", "SIRT1", +1.2)
-    m.add_edge("IN_NAD_availability", "SIRT3", +1.2)
-    m.add_edge("IN_inflammation", "NFkB", +1.6)
-    m.add_edge("IN_sleep_quality", "NFkB", -0.9)
-    m.add_edge("IN_iron_load", "ROS", +1.1)
-    m.add_edge("NFkB", "ROS", +0.8)
-    m.add_edge("AMPK", "mTORC1", -1.1)
-
-    # Regulator -> Regulator
-    m.add_edge("AMPK", "PGC1a", +1.1)
-    m.add_edge("SIRT1", "PGC1a", +0.9)
-    m.add_edge("mTORC1", "TFEB", -1.2)
-    m.add_edge("AMPK", "TFEB", +0.6)
-    m.add_edge("SIRT3", "ROS", -0.9)
-    m.add_edge("NFkB", "UPR", +0.6)
-    m.add_edge("mTORC1", "UPR", +0.5)
-    m.add_edge("ROS", "Nrf1", +0.6)
-    m.add_edge("UPR", "Nrf1", +0.4)
-
-    # Regulators -> Organelles
-    m.add_edge("PGC1a", "Mito_capacity", +1.4)
-    m.add_edge("AMPK", "Mito_capacity", +0.4)
-    m.add_edge("ROS", "Mito_capacity", -1.0)
-    m.add_edge("TFEB", "Lysosome_capacity", +1.5)
-    m.add_edge("ROS", "Lysosome_capacity", -0.6)
+        m = Model()
+        # --- All node creation (order does not matter as long as all are created before edges) ---
+        # Sub-compartments and explicit metabolites
+        m.add_node("Nucleolus", baseline=0.7, decay=0.08)
+        m.add_node("Nuclear_envelope", baseline=0.9, decay=0.05)
+        m.add_node("Cristae", baseline=0.8, decay=0.07)
+        m.add_node("ATP", baseline=0.5, decay=0.15)
+        m.add_node("ROS_metabolite", baseline=0.4, decay=0.12)
+        # Inputs
+        m.add_node("IN_fasting", value=0.0, baseline=0.0, decay=0.0)
+        m.add_node("IN_endurance_exercise", value=0.0, baseline=0.0, decay=0.0)
+        m.add_node("IN_resistance_training", value=0.0, baseline=0.0, decay=0.0)
+        m.add_node("IN_protein_aa", value=0.5, baseline=0.5, decay=0.0)
+        m.add_node("IN_caloric_excess", value=0.2, baseline=0.2, decay=0.0)
+        m.add_node("IN_inflammation", value=0.2, baseline=0.2, decay=0.0)
+        m.add_node("IN_iron_load", value=0.3, baseline=0.3, decay=0.0)
+        m.add_node("IN_NAD_availability", value=0.5, baseline=0.5, decay=0.0)
+        m.add_node("IN_sleep_quality", value=0.6, baseline=0.6, decay=0.0)
+        # Master regulators
+        m.add_node("AMPK", baseline=0.5, decay=0.10)
+        m.add_node("mTORC1", baseline=0.5, decay=0.10)
+        m.add_node("SIRT1", baseline=0.5, decay=0.10)
+        m.add_node("SIRT3", baseline=0.5, decay=0.10)
+        m.add_node("PGC1a", baseline=0.5, decay=0.10)
+        m.add_node("TFEB", baseline=0.5, decay=0.10)
+        m.add_node("UPR", baseline=0.4, decay=0.10)
+        m.add_node("Nrf1", baseline=0.5, decay=0.10)
+        m.add_node("NFkB", baseline=0.3, decay=0.10)
+        m.add_node("ROS", baseline=0.4, decay=0.08)
+        # Organelle capacity
+        m.add_node("Mito_capacity", baseline=0.5, decay=0.06)
+        m.add_node("Lysosome_capacity", baseline=0.5, decay=0.06)
+        m.add_node("Autophagy_flux", baseline=0.45, decay=0.07)
+        m.add_node("Proteasome_capacity", baseline=0.5, decay=0.06)
+        m.add_node("ER_capacity", baseline=0.5, decay=0.06)
+        m.add_node("Ribosome_capacity", baseline=0.5, decay=0.06)
+        m.add_node("Peroxisome_capacity", baseline=0.45, decay=0.06)
+        # Cytoskeleton
+        m.add_node("Actin_filaments", baseline=0.7, decay=0.08)
+        m.add_node("Microtubules", baseline=0.7, decay=0.08)
+        m.add_node("Intermediate_filaments", baseline=0.7, decay=0.08)
     m.add_edge("NFkB", "Lysosome_capacity", -0.4)
     m.add_edge("TFEB", "Autophagy_flux", +1.1)
     m.add_edge("mTORC1", "Autophagy_flux", -1.2)

@@ -40,7 +40,9 @@ from matplotlib.patches import Circle, Rectangle, FancyArrowPatch
 # Optional: Load your model module
 # -----------------------------
 
-import cell_organelle_model as mod
+from cell_model import build_ocm
+from cell_controller import run_simulation, scenario_baseline
+from cell_view import render_cell_blueprint
 
 
 # -----------------------------
@@ -478,23 +480,16 @@ class CellBlueprintRenderer:
 # Main entry
 # -----------------------------
 
+
 def main():
-    # Build model and choose a scenario (you can swap these)
-    model = mod.build_ocm()
-
-    # Choose how you want to feed it:
-    # 1) Run baseline scenario and take last state
-    schedule = [mod.scenario_baseline()]
-    history = mod.run_simulation(model=model, schedule=schedule, steps=120)
-
-    # Build a state snapshot: last value for each tracked node
+    # Build model and run scenario
+    model = build_ocm()
+    schedule = scenario_baseline()
+    history = run_simulation(model=model, schedule=schedule, steps=120)
     state = {k: v[-1] for k, v in history.items() if len(v) > 0}
-
-    # If you want to ensure the IN_* values show up in the blueprint, merge them:
-    state.update(mod.scenario_baseline())
-
-    renderer = CellBlueprintRenderer(style=Style(), scale=CellScale(cell_diameter_um=20.0))
-    renderer.render(state=state, outpath="cell_blueprint.png", seed=7)
+    # Update state with the first input dict from the schedule
+    state.update(scenario_baseline()[0])
+    render_cell_blueprint(state=state, outpath="cell_blueprint.png")
 
 
 if __name__ == "__main__":
